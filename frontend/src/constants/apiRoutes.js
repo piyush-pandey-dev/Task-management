@@ -2,7 +2,7 @@
 
 // export const BASE_URL = "http://localhost:8000/api";
 
-export const BASE_URL="https://task-management-ieax.onrender.com"
+export const BASE_URL="https://task-management-ieax.onrender.com/api"
 
 export const API_ROUTES = {
     AUTH: {
