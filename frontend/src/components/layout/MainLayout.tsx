@@ -1,4 +1,3 @@
-// src/components/MainLayout.jsx
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout, reset } from '../../features/authSlice'

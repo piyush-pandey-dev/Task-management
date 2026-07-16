@@ -1,11 +1,12 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { authService } from '../services/authService';
 
-// Initial state me hum check karenge ki kya localStorage me pehle se token hai
 const token = localStorage.getItem('token');
 
+const user = JSON.parse(localStorage.getItem('user'));
+
 const initialState = {
-    user: null,
+    user: user ? user : null,
     token: token ? token : null,
     isError: false,
     isSuccess: false,
@@ -13,7 +14,6 @@ const initialState = {
     message: '',
 };
 
-// Login Thunk
 export const loginUser = createAsyncThunk('auth/login', async (userData, thunkAPI) => {
     try {
         return await authService.login(userData);
@@ -23,7 +23,6 @@ export const loginUser = createAsyncThunk('auth/login', async (userData, thunkAP
     }
 });
 
-// Register Thunk
 export const registerUser = createAsyncThunk('auth/register', async (userData, thunkAPI) => {
     try {
         return await authService.register(userData);

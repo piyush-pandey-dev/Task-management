@@ -1,4 +1,10 @@
-import Task from "../models/Task.js";
+import mongoose from "mongoose";
+import {
+  createTaskService,
+  getTasksService,
+  updateTaskService,
+  deleteTaskService,
+} from "../services/taskService.js";
 
 export const createTask = async (req, res) => {
   try {
@@ -11,13 +17,15 @@ export const createTask = async (req, res) => {
       });
     }
 
-    const task = await Task.create({
+    const taskData = {
       title,
       description,
       status,
       dueDate,
       user: req.user.id,
-    });
+    };
+
+    const task = await createTaskService(taskData);
 
     res.status(201).json({
       success: true,
@@ -25,7 +33,7 @@ export const createTask = async (req, res) => {
       task,
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.status || 500).json({
       success: false,
       message: error.message,
     });
@@ -36,18 +44,8 @@ export const createTask = async (req, res) => {
 export const getTasks = async (req, res) => {
   try {
     const { search, status } = req.query;
-
-    let queryObject = { user: req.user.id };
-
-    if (search) {
-      queryObject.title = { $regex: search, $options: "i" }; 
-    }
-
-    if (status) {
-      queryObject.status = status;
-    }
-
-    const tasks = await Task.find(queryObject);
+    
+    const tasks = await getTasksService(req.user.id, search, status); 
 
     res.status(200).json({
       success: true,
@@ -55,7 +53,7 @@ export const getTasks = async (req, res) => {
       tasks,
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.status || 500).json({
       success: false,
       message: error.message,
     });
@@ -66,25 +64,22 @@ export const getTasks = async (req, res) => {
 export const updateTask = async (req, res) => {
   try {
     const taskId = req.params.id;
-    const task = await Task.findById(taskId);
 
-    if (!task) {
-      return res.status(404).json({
+    if (!mongoose.Types.ObjectId.isValid(taskId)) {
+      return res.status(400).json({
         success: false,
-        message: "Task not found",
+        message: "Invalid Task ID format",
       });
     }
 
-    if (task.user.toString() !== req.user.id) {
-      return res.status(401).json({
-        success: false,
-        message: "Not authorized to update this task",
-      });
-    }
+    const updateData = {
+      title: req.body.title,
+      description: req.body.description,
+      status: req.body.status,
+      dueDate: req.body.dueDate,
+    };
 
-    const updatedTask = await Task.findByIdAndUpdate(taskId, req.body, {
-      new: true,
-    });
+    const updatedTask = await updateTaskService(taskId, req.user.id, updateData); 
 
     res.status(200).json({
       success: true,
@@ -92,7 +87,7 @@ export const updateTask = async (req, res) => {
       task: updatedTask,
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.status || 500).json({
       success: false,
       message: error.message,
     });
@@ -103,31 +98,22 @@ export const updateTask = async (req, res) => {
 export const deleteTask = async (req, res) => {
   try {
     const taskId = req.params.id;
-    const task = await Task.findById(taskId);
 
-    // Agar task nahi mila
-    if (!task) {
-      return res.status(404).json({
+    if (!mongoose.Types.ObjectId.isValid(taskId)) {
+      return res.status(400).json({
         success: false,
-        message: "Task not found",
+        message: "Invalid Task ID format",
       });
     }
 
-    if (task.user.toString() !== req.user.id) {
-      return res.status(401).json({
-        success: false,
-        message: "Not authorized to delete this task",
-      });
-    }
-
-    await task.deleteOne();
+    await deleteTaskService(taskId, req.user.id);
 
     res.status(200).json({
       success: true,
       message: "Task deleted successfully",
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.status || 500).json({
       success: false,
       message: error.message,
     });

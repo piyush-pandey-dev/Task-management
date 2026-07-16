@@ -8,7 +8,7 @@ router.post("/register",registerUser);
 router.post("/login",loginUser);
 
 router.get("/authenticated",protect,(req,res)=>{
-    return res.status(201).json({
+    return res.status(200).json({
         success:true,
         message:"user authenticated"
     })

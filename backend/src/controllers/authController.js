@@ -1,6 +1,4 @@
-import User from "../models/User.js";
-import bcrypt from "bcryptjs";
-import generateToken from "../utils/generateToken.js";
+import { registerUserService, loginUserService } from "../services/authService.js";
 
 export const registerUser = async (req, res) => {
   try {
@@ -13,26 +11,7 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    const userExists = await User.findOne({ email });
-
-    if (userExists) {
-      return res.status(400).json({
-        success: false,
-        message: "User already exists",
-      });
-    }
-
-    const salt = await bcrypt.genSalt(10);
-
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-    });
-
-    const token = generateToken(user._id);
+    const { user, token } = await registerUserService({ name, email, password });
 
     res.status(201).json({
       success: true,
@@ -46,14 +25,12 @@ export const registerUser = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(error.status || 500).json({
       success: false,
       message: error.message,
     });
   }
 };
-
-
 
 
 export const loginUser = async (req, res) => {
@@ -67,25 +44,7 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
-    }
-
-    const token = generateToken(user._id);
+    const { user, token } = await loginUserService({ email, password });
 
     res.status(200).json({
       success: true,
@@ -99,7 +58,7 @@ export const loginUser = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(error.status || 500).json({
       success: false,
       message: error.message,
     });

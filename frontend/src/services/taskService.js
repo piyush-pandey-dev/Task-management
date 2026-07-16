@@ -1,9 +1,7 @@
-// src/services/taskService.js
 import axiosInstance from "./axiosInstance";
 import { API_ROUTES } from "../constants/apiRoutes";
 
 export const taskService = {
-    // getTasks mein hum search aur status parameters bhi bhej sakte hain
     getTasks: async (search = "", status = "") => {
         let query = "";
         if (search) query += `search=${search}&`;
